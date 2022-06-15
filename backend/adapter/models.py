@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.fields import ThumbnailerField
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
+from .management import MyUserManager
 
 
 def upload_to(instance, filename):
@@ -26,14 +27,6 @@ class Tier(models.Model):
         return f"{self.name}"
 
 
-class UserProfile(models.Model):
-    user = models.ForeignKey('auth.User', blank=True, null=True, related_name='userprofile', on_delete=models.CASCADE)
-    tier = models.ForeignKey(Tier, blank=False, null=False, related_name='Tier', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.user} - {self.tier}"
-
-
 class Image(models.Model):
     # Tier foreign key
     description = models.CharField(max_length=40, default='')
@@ -44,3 +37,16 @@ class Image(models.Model):
         null=True,
     )
     image = models.ImageField(upload_to=upload_to)
+
+
+class MyUser(AbstractUser):
+    username = models.CharField(max_length=50, unique=True, default='username')
+    tier = models.ForeignKey(Tier, blank=True, null=True, related_name='Tier', on_delete=models.CASCADE)
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
+
+    objects = MyUserManager()
+
+    def __str__(self):
+        return self.username
