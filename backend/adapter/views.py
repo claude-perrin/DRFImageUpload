@@ -17,6 +17,9 @@ class AttachmentDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ImageSerializer
 
 
+
+
+
 class AttachmentListCreateAPIView(generics.ListCreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer

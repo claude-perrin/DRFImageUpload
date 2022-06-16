@@ -31,6 +31,12 @@ MEDIA_URL = '/media/'
 
 AUTH_USER_MODEL = 'adapter.MyUser'
 
+THUMBNAIL_ALIASES = {
+    '': {
+        'avatar': {'size': (50, 50), 'crop': True},
+    },
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,6 +49,7 @@ INSTALLED_APPS = [
     'adapter',
     'rest_framework',
     'easy_thumbnails',
+    'sorl.thumbnail',
 
 ]
 
