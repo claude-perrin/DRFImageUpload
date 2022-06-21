@@ -29,11 +29,11 @@ ALLOWED_HOSTS = []
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-AUTH_USER_MODEL = 'adapter.MyUser'
+# AUTH_USER_MODEL = 'adapter.MyUser'
 
 THUMBNAIL_ALIASES = {
     '': {
-        'avatar': {'size': (50, 50), 'crop': True},
+        'Basic': {'size': (200, 200), 'crop': True},
     },
 }
 
@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'adapter',
     'rest_framework',
     'easy_thumbnails',
-    'sorl.thumbnail',
+    'rest_framework.authtoken',
 
 ]
 

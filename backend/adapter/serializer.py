@@ -1,15 +1,16 @@
-from easy_thumbnails_rest.serializers import ThumbnailerSerializer
 from rest_framework import serializers
-from sorl.thumbnail import get_thumbnail
+from rest_framework.authtoken.admin import User
 
-from .models import Image, MyUser, Tier
+from .models import Image, Profile, Tier
 
 from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 
-HOST_URL = "http://127.0.0.1:8000"
+HOST_URL = "http://localhost:8000"
 
 
 class TierSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True)
+
     class Meta:
         model = Tier
         fields = [
@@ -20,32 +21,35 @@ class TierSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserSerializer(serializers.ModelSerializer):
-    tier = TierSerializer()
+class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        default=serializers.CurrentUserDefault(),
+        read_only=True
+    )
+    tier = TierSerializer(read_only=True)
 
     class Meta:
-        model = MyUser
+        model = Profile
         fields = [
-            'username',
+            'user',
             'tier',
         ]
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)
-    avatar = serializers.SerializerMethodField()
-    user = UserSerializer()
+    image = serializers.ImageField(required=True)
+    profile = ProfileSerializer(read_only=True)
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = Image
         fields = [
-            'user',
             'description',
+            'profile',
             'image',
-            'avatar',
+            'thumbnail',
         ]
 
-    def get_avatar(self, obj):
-        return HOST_URL + thumbnail_url(obj.image, 'avatar')
-
-    # return get_thumbnail(obj, '200x200', crop='center', quality=99).url
+    def get_thumbnail(self, obj):
+        # return self.context.get('alias')
+        return HOST_URL + thumbnail_url(obj.image, f'{obj.profile.tier.name}')
