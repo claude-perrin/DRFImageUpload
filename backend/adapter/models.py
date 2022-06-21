@@ -21,10 +21,10 @@ from rest_framework.authtoken.admin import User
 # TODO thumnails should be a list somehow
 
 class Thumbnail(models.Model):
-    size = models.CharField(max_length=10, default='0x0')
+    dimension = models.CharField(max_length=10, default='0x0')
 
     def __str__(self):
-        return f"{self.size}"
+        return f"{self.dimension}"
 
 
 class Tier(models.Model):
@@ -36,21 +36,6 @@ class Tier(models.Model):
     )
     link = models.BooleanField(default=True)
     expiring_links = models.BooleanField(default=True)
-
-    def save(self, *args, **kwargs):
-        # you can check if object just created by comparing "pk" attr to None
-        # you can also use _state attr see doc link below
-        is_created = self.pk is None
-
-        super(Tier, self).save(*args, **kwargs)
-
-        if is_created:
-            # do something here
-            if not aliases.get(self.name):
-                for thumbnail in self.thumbnails.all():
-                    thumbnail_height, thumbnail_width = self.thumbnail.split('x')
-                    aliases.set(self.name, {'size': (thumbnail_height, thumbnail_width), 'crop': True})
-                    print(aliases.get('Basic'))
 
     def __str__(self):
         return f"{self.name}"

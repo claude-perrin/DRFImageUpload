@@ -31,11 +31,6 @@ MEDIA_URL = '/media/'
 
 # AUTH_USER_MODEL = 'adapter.MyUser'
 
-THUMBNAIL_ALIASES = {
-    '': {
-        'Basic': {'size': (200, 200), 'crop': True},
-    },
-}
 
 # Application definition
 
