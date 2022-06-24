@@ -1,14 +1,13 @@
+import base64
+import datetime
+import os
 import subprocess
 
 from django.conf import settings
 from rest_framework import serializers
-from rest_framework.authtoken.admin import User
 
-from .models import Image, Profile, Tier, Thumbnail
-
-from easy_thumbnails.templatetags.thumbnail import thumbnail_url
-
-HOST_URL = "http://localhost:8000"
+from .models import Image, Profile, Tier, Thumbnail, Token
+from PIL import Image as PIL_IMAGE
 
 
 class ThumbnailSerializer(serializers.ModelSerializer):
@@ -29,7 +28,7 @@ class TierSerializer(serializers.ModelSerializer):
         fields = [
             'name',
             'thumbnails',
-            'link',
+            'original_image_link',
             'expiring_links',
         ]
 
@@ -49,13 +48,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
 
-# TODO maybe it is better to separate input and output images
+# TODO it is better to separate input and output images
 
-
-class ImageSerializer(serializers.ModelSerializer):
+class ImageSubmitSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=True)
     profile = ProfileSerializer(read_only=True)
-    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = Image
@@ -63,8 +60,19 @@ class ImageSerializer(serializers.ModelSerializer):
             'description',
             'profile',
             'image',
-            'thumbnail',
         ]
+
+
+class ImageSerializer(serializers.Serializer):
+    image = serializers.SerializerMethodField()
+    profile = ProfileSerializer(write_only=True)
+    thumbnail = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        if obj.profile.tier.original_image_link:
+            request = self.context.get('request')
+            image_url = obj.image.url
+            return request.build_absolute_uri(image_url)
 
     @staticmethod
     def create_thumbnail(input_path, thumbnail_path, thumbnail_dimension):
@@ -89,7 +97,29 @@ class ImageSerializer(serializers.ModelSerializer):
             return_code = self.create_thumbnail(input_path=input_path, thumbnail_path=thumbnail_name,
                                                 thumbnail_dimension=thumbnail.dimension)
             if return_code == 0:
-                thumbnail_links.append(f'{HOST_URL}/media/{folder_path}/{thumbnail_name}')
+                request = self.context.get('request')
+                thumbnail_links.append(request.build_absolute_uri(f'/media/{folder_path}/{thumbnail_name}'))
         return thumbnail_links
 
-    # return HOST_URL + thumbnail_url(obj.image, f'{obj.profile.tier.name}')
+
+def generate_token(expiration_time):
+    expire_at = datetime.datetime.now() + datetime.timedelta(seconds=expiration_time)
+    token = Token.objects.create(expiration=expire_at)
+    return token.token
+
+
+class ImageCreateBinarySerializer(serializers.Serializer):
+    image = serializers.ImageField(write_only=True)
+    binary_image = serializers.SerializerMethodField()
+
+    def get_binary_image(self, obj):
+        if obj.profile.tier.expiring_links:
+            request = self.context.get('request')
+            token = generate_token(self.context.get('expiration_time'))
+
+            image_path = obj.image.path
+            _, image_name = str(obj.image).split('/')
+            output_path = 'media/binary/BINARY-'
+            with PIL_IMAGE.open(image_path).convert('1') as image:
+                image.save(f'{output_path}{image_name}')
+            return request.build_absolute_uri(f'{token}/BINARY-{image_name}')

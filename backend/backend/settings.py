@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'adapter',
     'rest_framework',
-    'easy_thumbnails',
     'rest_framework.authtoken',
 
 ]

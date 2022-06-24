@@ -1,24 +1,24 @@
+import binascii
+import os
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import models
 from django.db.models.signals import post_save
-from django.contrib.auth import models as auth_models
 
 from django.dispatch import receiver
-from easy_thumbnails.fields import ThumbnailerImageField
-from easy_thumbnails.fields import ThumbnailerField
-from django.contrib.auth.models import PermissionsMixin, AbstractUser
-from easy_thumbnails.alias import aliases
 
 # from .management import MyUserManager
 from rest_framework.authtoken.admin import User
 
 
-# TODO You don't have expiring links to binary images
+# TODO a link ..../view/binary/400(time) -> returns all binary images generated for 400sec
+# TODO in the view, time is taken -> Token is generated -> token is put into the link
+# TODO in retrieve, token is taken -> Time is verified
 # TODO docker-compose
-# TODO thumnails should be a list somehow
+def generate_key():
+    return binascii.hexlify(os.urandom(20)).decode()
+
 
 class Thumbnail(models.Model):
     dimension = models.CharField(max_length=10, default='0x0')
@@ -32,9 +32,9 @@ class Tier(models.Model):
     thumbnails = models.ManyToManyField(
         Thumbnail,
         blank=False,
-        null=True,
+
     )
-    link = models.BooleanField(default=True)
+    original_image_link = models.BooleanField(default=True)
     expiring_links = models.BooleanField(default=True)
 
     def __str__(self):
@@ -50,7 +50,7 @@ class Profile(models.Model):
     )
     tier = models.ForeignKey(
         Tier,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
     )
@@ -61,6 +61,14 @@ class Profile(models.Model):
 
 def upload_to(instance, filename):
     return f'images/{filename}'
+
+
+class Token(models.Model):
+    token = models.CharField(max_length=20, default=generate_key)
+    expiration = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.token}"
 
 
 class Image(models.Model):

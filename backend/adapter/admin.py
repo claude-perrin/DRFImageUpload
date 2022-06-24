@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Image, Tier, Profile, Thumbnail
+from .models import Image, Tier, Profile, Thumbnail, Token
 
 
 class TierInline(admin.TabularInline):
@@ -22,4 +22,6 @@ class ThumbnailSizesAdmin(admin.ModelAdmin):
 admin.site.register(Image)
 admin.site.register(Tier)
 admin.site.register(Profile)
+admin.site.register(Token)
+
 admin.site.register(Thumbnail, ThumbnailAdmin)
