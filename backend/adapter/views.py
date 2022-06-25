@@ -7,6 +7,7 @@ from django.urls import reverse
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Image, Profile, Token
 from .serializer import ImageSubmitSerializer, ImageSerializer, ImageCreateBinarySerializer
@@ -15,6 +16,7 @@ from .serializer import ImageSubmitSerializer, ImageSerializer, ImageCreateBinar
 class ImageCreateAPIView(generics.CreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ImageSubmitSerializer
+    permission_classes = (IsAuthenticated,)
 
     # TODO anonymous user
     def perform_create(self, serializer):
@@ -33,6 +35,12 @@ class ImageListAPIView(generics.ListAPIView):
             return Image.objects.none()
         profile = Profile.objects.get(user=user)
         return qs.filter(profile=profile)
+
+
+"""
+From a link gets a token and expiration time
+Afterwards transfers it to a serializer
+"""
 
 
 class BinaryImageUrl(ListAPIView):
@@ -55,6 +63,6 @@ class BinaryImageUrl(ListAPIView):
 
 @api_view(['GET'])
 def binary_image(request, token, image_name):
-    get_object_or_404(Token, token=token, expiration__gte=datetime.now())
+    get_object_or_404(Token, token=token, expiration__gte=datetime.utcnow())
     valid_image = f'/media/binary/{image_name}'
     return redirect(valid_image)
