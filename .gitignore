@@ -1,3 +1,8 @@
 env
 .DS_Store
 .idea
+backend/media
+backend/db.sqlite3
+backend/adapter/migrations
+backend/adapter/__pycache__
+
