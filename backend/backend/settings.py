@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,6 +20,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 # Application definition
+
+if 'test' in sys.argv:
+    # store files in memory, no cleanup after tests are finished
+    DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
+    # much faster password hashing, default one is super slow (on purpose)
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

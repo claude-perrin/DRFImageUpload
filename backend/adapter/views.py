@@ -18,7 +18,6 @@ class ImageCreateAPIView(generics.CreateAPIView):
     serializer_class = ImageSubmitSerializer
     permission_classes = (IsAuthenticated,)
 
-    # TODO anonymous user
     def perform_create(self, serializer):
         profile = Profile.objects.get(user=self.request.user)
         serializer.save(profile=profile)

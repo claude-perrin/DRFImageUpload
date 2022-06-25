@@ -60,6 +60,7 @@ class ImageSubmitSerializer(serializers.ModelSerializer):
             'profile',
             'image',
         ]
+        depth = 1
 
 
 class ImageSerializer(serializers.Serializer):
@@ -99,7 +100,7 @@ class ImageSerializer(serializers.Serializer):
     def get_thumbnail(self, obj):
         thumbnail_links = list()
         input_path = f'{settings.MEDIA_ROOT}/{obj.image}'
-        print(obj.image)
+        print(input_path)
         folder_path, image_name = str(obj.image).split('/')
 
         for thumbnail in obj.profile.tier.thumbnails.all():
@@ -119,7 +120,6 @@ def generate_token(expiration_time):
 
 
 def validate_expiration_time(value):
-    print(value)
     if 300 < value < 300000:
         return value
     raise ValidationError("The expiration time must be in range 300-300000")
